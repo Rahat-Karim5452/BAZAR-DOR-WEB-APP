@@ -18,7 +18,7 @@ function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/product/${product.slug}`}
       className="block rounded-xl border border-[#e2e9e1] bg-[#fbfcfa] p-3 transition hover:border-green-200 hover:shadow-sm sm:p-3.5"
     >
       <div className="flex min-w-0 items-start gap-2.5">
