@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { getProductById, getProducts } from "@/lib/api";
 import type { Product } from "@/types";
+import { useSession } from "@/lib/auth-client";
+import toast from "react-hot-toast";
 
 function bn(value: number) {
   return value.toLocaleString("bn-BD", {
@@ -36,11 +38,42 @@ export default function ProductDetailsPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const authChecked = useRef(false);
+
+  // Redirect users who are not signed in.
   useEffect(() => {
+    if (isPending) return;
+
+    if (!session) {
+      if (!authChecked.current) {
+        authChecked.current = true;
+
+        toast.error("পণ্যের বিস্তারিত দেখতে আগে Sign in করুন।");
+
+        const callbackURL = `/product/${encodeURIComponent(slug)}`;
+
+        router.replace(
+          `/signin?callbackURL=${encodeURIComponent(callbackURL)}`,
+        );
+      }
+
+      return;
+    }
+
+    authChecked.current = false;
+  }, [session, isPending, slug, router]);
+
+  // Load product only after authentication is confirmed.
+  useEffect(() => {
+    if (isPending || !session || !slug) return;
+
     let cancelled = false;
 
     async function loadProduct() {
@@ -82,14 +115,12 @@ export default function ProductDetailsPage() {
       }
     }
 
-    if (slug) {
-      loadProduct();
-    }
+    loadProduct();
 
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, session, isPending]);
 
   const markets = product?.markets ?? [];
 
@@ -110,6 +141,20 @@ export default function ProductDetailsPage() {
           0,
         ) / markets.length
       : (product?.today ?? 0);
+
+  // Avoid showing product content before authentication is confirmed.
+  if (isPending || !session) {
+    return (
+      <main className="flex min-h-[70vh] items-center justify-center bg-[#f0f5ef] px-4">
+        <div className="rounded-2xl border border-[#e2e9e1] bg-[#fbfcfa] px-6 py-8 text-center">
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-green-700 border-t-transparent" />
+          <p className="text-sm font-medium text-[#202820]">
+            {isPending ? "অপেক্ষা করো..." : "Sign in পেজে নেওয়া হচ্ছে..."}
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-[70vh] bg-[#f0f5ef] px-4 py-5 sm:px-6 sm:py-7">

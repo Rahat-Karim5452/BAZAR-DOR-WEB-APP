@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getCategories } from "@/lib/api";
 import type { Category } from "@/types";
 import Logo from "../../../public/logo-icon.png";
+import UserProfileMenu from "./UserProfileMenu";
 
 function getBangladeshDate() {
   return new Date().toLocaleDateString("bn-BD", {
@@ -37,8 +38,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-green-100 bg-white/95 shadow-sm backdrop-blur">
-      {/* Compact Logo and Auth Section */}
+      {/* Logo and User Profile */}
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 sm:px-6 sm:py-2">
+        {/* Logo */}
         <Link
           href="/"
           aria-label="বাজার দর হোম"
@@ -66,25 +68,13 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Sign In and Sign Up */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <Link
-            href="/signin"
-            className="rounded-md px-2 py-1.5 text-xs font-semibold text-green-800 transition-colors hover:bg-green-50 hover:text-green-950 focus-visible:outline-2 focus-visible:outline-green-700 sm:px-3 sm:text-sm"
-          >
-            সাইন ইন
-          </Link>
-
-          <Link
-            href="/signup"
-            className="rounded-md bg-green-700 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-800 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700 sm:px-4 sm:text-sm"
-          >
-            সাইন আপ
-          </Link>
+        {/* Auth buttons OR user profile */}
+        <div className="flex shrink-0 items-center">
+          <UserProfileMenu />
         </div>
       </div>
 
-      {/* Compact Category Navigation */}
+      {/* Category Navigation */}
       <div className="border-t border-gray-100">
         <nav
           aria-label="পণ্যের ক্যাটাগরি"
