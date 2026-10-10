@@ -2,8 +2,8 @@
 
 Daily market prices of essential goods at a glance. Track prices of rice, lentils, oil, vegetables, fish, meat and spices, compare prices across markets, and see daily price changes in one place.
 
-**Live Link:** https://your-domain.vercel.app
-**GitHub:** https://github.com/your-username/your-repo
+**Live Link:** https://bazar-dor-web-app-black.vercel.app/
+**GitHub:** https://github.com/Rahat-Karim5452/BAZAR-DOR-WEB-APP.git
 
 ## Technologies Used
 
@@ -29,7 +29,7 @@ Daily market prices of essential goods at a glance. Track prices of rice, lentil
 ## Getting Started
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
+git clone https://github.com/Rahat-Karim5452/BAZAR-DOR-WEB-APP.git
 cd your-repo
 npm install
 npm run dev
