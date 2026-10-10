@@ -15,6 +15,9 @@ function getBangladeshDate() {
     timeZone: "Asia/Dhaka",
   });
 }
+function TodayDate() {
+  return <>{getBangladeshDate()}</>;
+}
 
 function CategoryLinks({ categories }: { categories: Category[] }) {
   const pathname = usePathname();
@@ -106,7 +109,9 @@ export default function Navbar() {
               বাজার দর
             </h1>
             <p className="mt-0.5 text-[9px] leading-tight text-gray-500 sm:text-[11px]">
-              {getBangladeshDate()}
+              <Suspense fallback={null}>
+                <TodayDate />
+              </Suspense>
             </p>
           </div>
         </Link>

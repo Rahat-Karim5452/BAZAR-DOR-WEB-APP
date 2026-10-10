@@ -1,22 +1,31 @@
 "use client";
 
 import Image from "next/image";
+import { Suspense } from "react";
 import Hero from "../../../public/bazar-hero.png";
 
-export default function HeroSection() {
-  const today = new Date().toLocaleDateString("bn-BD", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Asia/Dhaka",
-  });
+function TodayText() {
+  return (
+    <>
+      {new Date().toLocaleDateString("bn-BD", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Dhaka",
+      })}
+    </>
+  );
+}
 
+export default function HeroSection() {
   return (
     <section className="bg-[#f0f5ef] px-4 py-5 sm:px-6 sm:py-7">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-6 rounded-2xl border border-[#e5eae3] bg-[#fbfcfa] px-5 py-6 shadow-sm sm:px-8 md:grid-cols-[1.5fr_0.8fr] md:px-10 md:py-8">
         <div>
           <span className="inline-flex rounded-full bg-[#e4f2e5] px-3 py-1 text-xs font-medium text-green-800">
-            {today}
+            <Suspense fallback={null}>
+              <TodayText />
+            </Suspense>
           </span>
 
           <h1 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight text-[#202820] sm:text-3xl">

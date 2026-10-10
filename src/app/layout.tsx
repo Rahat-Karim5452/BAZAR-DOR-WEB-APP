@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Bengali } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Marquee from "./components/Marquee";
@@ -25,7 +26,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <Navbar />
         <Marquee />
-        <div className="flex-1">{children}</div>
+        <div className="flex-1">
+          <Suspense fallback={<div className="min-h-[60vh]" />}>
+            {children}
+          </Suspense>
+        </div>
         <Footer />
         <Toaster
           position="top-right"
