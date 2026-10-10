@@ -1,11 +1,11 @@
-# বাজার দর (BazarDor)
+# BazarDor (বাজার দর)
 
-প্রয়োজনীয় পণ্যের আজকের বাজারদর এক নজরে। চাল, ডাল, তেল, সবজি, মাছ, মাংস ও মসলার দাম, বাজারভিত্তিক তুলনা এবং দামের পরিবর্তন জানুন এক জায়গায়।
+Daily market prices of essential goods at a glance. Track prices of rice, lentils, oil, vegetables, fish, meat and spices, compare prices across markets, and see daily price changes in one place.
 
 **Live Link:** https://your-domain.vercel.app
 **GitHub:** https://github.com/your-username/your-repo
 
-## প্রযুক্তি (Technologies)
+## Technologies Used
 
 - Next.js (App Router)
 - TypeScript
@@ -13,20 +13,20 @@
 - HeroUI
 - BetterAuth (Email/Password, Google, GitHub)
 - MongoDB Atlas
-- react-text-marquee
+- react-fast-marquee
 - react-hot-toast
 - @gravity-ui/icons
 
-## মূল বৈশিষ্ট্য (Features)
+## Features
 
-1. **লাইভ বাজারদর ticker:** নিচে scrolling strip-এ পণ্যের দাম ও দামের পরিবর্তন দেখায়।
-2. **আজ দাম বেড়েছে / কমেছে:** সবচেয়ে বেশি বাড়া ও কমা ৬টি করে পণ্য আলাদাভাবে দেখায়।
-3. **ক্যাটাগরি ও সাজানো:** ক্যাটাগরি অনুযায়ী পণ্য দেখা যায় এবং দাম অনুযায়ী সাজানো যায়।
-4. **বাজারভিত্তিক বিস্তারিত দাম:** প্রতিটি পণ্যের সর্বনিম্ন, সর্বাধিক ও গড় দাম এবং প্রতিটি বাজারের তালিকা।
-5. **অ্যাকাউন্ট ব্যবস্থা:** Email/Password ও Google/GitHub দিয়ে সাইন আপ, সাইন ইন, প্রোফাইল আপডেট ও সাইন আউট।
-6. **রেসপন্সিভ ডিজাইন:** মোবাইল, ট্যাবলেট ও ডেস্কটপে ঠিকভাবে কাজ করে।
+1. **Live price ticker:** A scrolling strip showing product prices and daily changes.
+2. **Top risers and fallers:** Shows the top 6 products with the biggest price increases and decreases.
+3. **Categories and sorting:** Browse products by category and sort them by price.
+4. **Market-wise details:** Minimum, maximum and average prices for each product, with a list of markets.
+5. **Authentication:** Sign up and sign in with Email/Password, Google or GitHub, update your name, and sign out.
+6. **Responsive design:** Works on mobile, tablet and desktop.
 
-## Local-এ চালানোর নিয়ম
+## Getting Started
 
 ```bash
 git clone https://github.com/your-username/your-repo.git
@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-তারপর project-এর root-এ `.env.local` file বানিয়ে নিচের variable গুলো দিন:
+Create a `.env.local` file in the project root:
 
 ```
 BETTER_AUTH_SECRET=
@@ -50,4 +50,4 @@ GITHUB_CLIENT_SECRET=
 
 ## Data Source
 
-পণ্য ও দামের তথ্য: `https://api.abcz.workers.dev/api/bazardor`
+Product and price data: `https://api.abcz.workers.dev/api/bazardor`
