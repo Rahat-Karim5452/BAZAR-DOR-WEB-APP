@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getCategories } from "@/lib/api";
 import type { Category } from "@/types";
-import Logo from "../../../public/logo-icon.png";
+import Logo from "../../../public/Shopping-Cart.png";
 import UserProfileMenu from "./UserProfileMenu";
 
 function getBangladeshDate() {
@@ -99,7 +99,7 @@ export default function Navbar() {
               alt="বাজার দর লোগো"
               fill
               priority
-              sizes="44px"
+              sizes="30px"
               className="object-contain"
             />
           </div>
