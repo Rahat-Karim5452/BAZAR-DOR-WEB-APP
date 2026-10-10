@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# বাজার দর (BazarDor)
 
-## Getting Started
+প্রয়োজনীয় পণ্যের আজকের বাজারদর এক নজরে। চাল, ডাল, তেল, সবজি, মাছ, মাংস ও মসলার দাম, বাজারভিত্তিক তুলনা এবং দামের পরিবর্তন জানুন এক জায়গায়।
 
-First, run the development server:
+**Live Link:** https://your-domain.vercel.app
+**GitHub:** https://github.com/your-username/your-repo
+
+## প্রযুক্তি (Technologies)
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- HeroUI
+- BetterAuth (Email/Password, Google, GitHub)
+- MongoDB Atlas
+- react-text-marquee
+- react-hot-toast
+- @gravity-ui/icons
+
+## মূল বৈশিষ্ট্য (Features)
+
+1. **লাইভ বাজারদর ticker:** নিচে scrolling strip-এ পণ্যের দাম ও দামের পরিবর্তন দেখায়।
+2. **আজ দাম বেড়েছে / কমেছে:** সবচেয়ে বেশি বাড়া ও কমা ৬টি করে পণ্য আলাদাভাবে দেখায়।
+3. **ক্যাটাগরি ও সাজানো:** ক্যাটাগরি অনুযায়ী পণ্য দেখা যায় এবং দাম অনুযায়ী সাজানো যায়।
+4. **বাজারভিত্তিক বিস্তারিত দাম:** প্রতিটি পণ্যের সর্বনিম্ন, সর্বাধিক ও গড় দাম এবং প্রতিটি বাজারের তালিকা।
+5. **অ্যাকাউন্ট ব্যবস্থা:** Email/Password ও Google/GitHub দিয়ে সাইন আপ, সাইন ইন, প্রোফাইল আপডেট ও সাইন আউট।
+6. **রেসপন্সিভ ডিজাইন:** মোবাইল, ট্যাবলেট ও ডেস্কটপে ঠিকভাবে কাজ করে।
+
+## Local-এ চালানোর নিয়ম
 
 ```bash
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+তারপর project-এর root-এ `.env.local` file বানিয়ে নিচের variable গুলো দিন:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_BETTER_AUTH_BASE_URL=http://localhost:3000
+BETTER_AUTH_DATABASE_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Data Source
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+পণ্য ও দামের তথ্য: `https://api.abcz.workers.dev/api/bazardor`
