@@ -8,7 +8,6 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { authState } from "@/lib/use-require-auth";
 import Image from "next/image";
 
-// Avatar না থাকলে নামের প্রথম অক্ষর দেখাবে
 function Avatar({
   src,
   name,
