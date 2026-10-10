@@ -1,192 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, signOut, updateUser } from "@/lib/auth-client";
 import toast from "react-hot-toast";
+import { signOut, useSession } from "@/lib/auth-client";
+import { authState } from "@/lib/use-require-auth";
+import Image from "next/image";
+
+// Avatar না থাকলে নামের প্রথম অক্ষর দেখাবে
+function Avatar({
+  src,
+  name,
+  size,
+}: {
+  src?: string | null;
+  name?: string | null;
+  size: string;
+}) {
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt="প্রোফাইল ছবি"
+        referrerPolicy="no-referrer"
+        className={`${size} shrink-0 rounded-full border border-gray-200 object-cover`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-green-100 font-bold text-green-800`}
+    >
+      {(name || "ব").charAt(0).toUpperCase()}
+    </div>
+  );
+}
 
 export default function UserProfileMenu() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-
-  const [dropdown, setDropdown] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const user = session?.user;
-  const currentName = user?.name || "ব্যবহারকারী";
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
 
-  // নাম পরিবর্তন
-  async function handleSaveName() {
-    const trimmedName = name.trim();
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    if (!trimmedName) {
-      toast.error("নাম লিখুন");
+  async function handleSignOut() {
+    authState.signingOut = true;
+    setSigningOut(true);
+
+    const { error } = await signOut();
+
+    setSigningOut(false);
+
+    if (error) {
+      authState.signingOut = false;
+      toast.error(error.message || "সাইন আউট করা যায়নি");
       return;
     }
 
-    try {
-      setSaving(true);
-
-      const result = await updateUser({ name: trimmedName });
-
-      if (result?.error) {
-        toast.error(result.error.message || "নাম পরিবর্তন করা যায়নি");
-        return;
-      }
-
-      toast.success("নাম পরিবর্তন সফল হয়েছে");
-      setEditing(false);
-      setDropdown(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Name update error:", error);
-      toast.error("নাম পরিবর্তন করতে সমস্যা হয়েছে");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // সাইন আউট
-  async function handleSignOut() {
-    try {
-      setLoggingOut(true);
-
-      const result = await signOut();
-
-      if (result?.error) {
-        toast.error(result.error.message || "সাইন আউট করা যায়নি");
-        return;
-      }
-
-      setDropdown(false);
-      toast.success("সাইন আউট সফল হয়েছে");
-      router.replace("/");
-      router.refresh();
-    } catch (error) {
-      console.error("Sign out error:", error);
-      toast.error("সাইন আউট করতে সমস্যা হয়েছে");
-    } finally {
-      setLoggingOut(false);
-    }
+    setOpen(false);
+    toast.success("সাইন আউট সফল হয়েছে");
+    router.replace("/");
   }
 
   if (isPending) {
     return <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-100" />;
   }
 
-  // Login না করা থাকলে
   if (!user) {
     return (
       <div className="flex items-center gap-2">
         <Link
           href="/signin"
-          className="rounded-lg px-3 py-2 text-sm font-semibold text-green-800 transition hover:bg-green-50"
+          className="rounded-lg px-3 py-2 text-sm font-semibold text-green-800 hover:bg-green-50"
         >
           সাইন ইন
         </Link>
-
         <Link
           href="/signup"
-          className="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-green-800"
+          className="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-800"
         >
           সাইন আপ
         </Link>
       </div>
     );
   }
-
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button
         type="button"
-        onClick={() => setDropdown((prev) => !prev)}
-        aria-expanded={dropdown}
-        aria-haspopup="true"
-        className="flex max-w-48 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-green-800 transition hover:bg-green-50"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-expanded={open}
+        className="flex max-w-56 items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-[#202820] hover:bg-green-50"
       >
-        <span className="max-w-36 truncate">{currentName}</span>
-        <span aria-hidden="true">{dropdown ? "▲" : "▼"}</span>
+        <Avatar src={user.image} name={user.name} size="h-9 w-9" />
+        <span className="max-w-28 truncate">{user.name || "ব্যবহারকারী"}</span>
+        <span aria-hidden="true" className="text-xs text-gray-500">
+          ▾
+        </span>
       </button>
 
-      {/* Dropdown menu */}
-      {dropdown && (
-        <div className="absolute right-0 z-[100] mt-2 w-60 overflow-hidden rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
-          {!editing ? (
-            <>
-              <div className="border-b border-gray-100 px-3 py-2">
-                <p className="truncate text-sm font-semibold text-gray-800">
-                  {currentName}
-                </p>
-                <p className="truncate text-xs text-gray-500">{user.email}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setName(currentName);
-                  setEditing(true);
-                }}
-                className="w-full rounded-md px-3 py-2.5 text-left text-sm text-gray-700 transition hover:bg-green-50"
-              >
-                নাম পরিবর্তন করুন
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSignOut}
-                disabled={loggingOut}
-                className="w-full rounded-md px-3 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-              >
-                {loggingOut ? "সাইন আউট হচ্ছে..." : "সাইন আউট"}
-              </button>
-            </>
-          ) : (
-            <div className="p-2">
-              <p className="mb-3 text-sm font-semibold text-gray-800">
-                নাম পরিবর্তন করুন
+      {open && (
+        <div className="absolute right-0 z-[100] mt-2 w-64 rounded-2xl border border-[#e2e9e1] bg-white p-3 shadow-lg">
+          {/* User info */}
+          <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+            <Avatar src={user.image} name={user.name} size="h-10 w-10" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[#202820]">
+                {user.name || "ব্যবহারকারী"}
               </p>
-
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void handleSaveName();
-                  }
-                }}
-                placeholder="আপনার নতুন নাম লিখুন"
-                maxLength={80}
-                autoFocus
-                className="mb-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              />
-
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditing(false)}
-                  disabled={saving}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  বাতিল করুন
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => void handleSaveName()}
-                  disabled={saving}
-                  className="rounded-md bg-green-700 px-3 py-2 text-sm text-white hover:bg-green-800 disabled:opacity-50"
-                >
-                  {saving ? "সংরক্ষণ হচ্ছে..." : "সংরক্ষণ করুন"}
-                </button>
-              </div>
+              <p className="truncate text-xs text-gray-500">{user.email}</p>
             </div>
-          )}
+          </div>
+
+          {/* Profile link */}
+          <Link
+            href="/profile"
+            onClick={() => setOpen(false)}
+            className="mt-2 block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50"
+          >
+            👤 আমার প্রোফাইল
+          </Link>
+
+          {/* Sign out */}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+          >
+            {signingOut ? "সাইন আউট হচ্ছে..." : "↩ সাইন আউট"}
+          </button>
         </div>
       )}
     </div>

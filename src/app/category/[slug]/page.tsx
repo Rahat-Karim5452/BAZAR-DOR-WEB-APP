@@ -65,7 +65,6 @@ export default function CategoryPage() {
       cancelled = true;
     };
   }, [slug]);
-
   const sortedProducts = useMemo(() => {
     const result = [...products];
 
@@ -98,47 +97,61 @@ export default function CategoryPage() {
                 <div className="mt-2 h-4 w-48 animate-pulse rounded bg-gray-100" />
               </>
             ) : (
-              <>
-                <h1 className="text-2xl font-extrabold text-[#202820]">
-                  {category?.nameBn}
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  {bn(products.length)}টি পণ্যের আজকের দাম ও পরিবর্তন
-                </p>
-              </>
+              !invalid && (
+                <>
+                  <h1 className="text-2xl font-extrabold text-[#202820]">
+                    {category?.nameBn}
+                  </h1>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {bn(products.length)}টি পণ্যের আজকের দাম ও পরিবর্তন
+                  </p>
+                </>
+              )
             )}
           </div>
         </section>
 
         {/* Sort control */}
-        <section className="mb-4 flex min-h-[64px] items-center justify-end gap-3 rounded-2xl border border-[#e2e9e1] bg-[#fbfcfa] px-4 py-3 sm:px-6">
-          <label htmlFor="product-sort" className="text-sm text-gray-600">
-            সাজান
-          </label>
+        {!invalid && (
+          <section className="mb-4 flex min-h-[64px] items-center justify-end gap-3 rounded-2xl border border-[#e2e9e1] bg-[#fbfcfa] px-4 py-3 sm:px-6">
+            <label htmlFor="product-sort" className="text-sm text-gray-600">
+              সাজান
+            </label>
 
-          <select
-            id="product-sort"
-            value={sort}
-            onChange={(event) => setSort(event.target.value as SortOption)}
-            disabled={loading || invalid}
-            className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-[#202820] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <option value="default">ডিফল্ট</option>
-            <option value="low-high">দাম: কম থেকে বেশি</option>
-            <option value="high-low">দাম: বেশি থেকে কম</option>
-          </select>
-        </section>
+            <div className="relative">
+              <select
+                id="product-sort"
+                value={sort}
+                onChange={(event) => setSort(event.target.value as SortOption)}
+                disabled={loading}
+                className="cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-9 text-sm text-[#202820] outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="default">ডিফল্ট</option>
+                <option value="low-high">দাম: কম থেকে বেশি</option>
+                <option value="high-low">দাম: বেশি থেকে কম</option>
+              </select>
 
-        {/* Product count */}
-        {!loading && !invalid && (
-          <p className="mb-4 text-sm text-gray-500">
-            মোট {bn(sortedProducts.length)}টি পণ্য দেখানো হচ্ছে
-          </p>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+              >
+                <path
+                  d="M6 8l4 4 4-4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </section>
         )}
 
         {/* Loading skeleton */}
         {loading && (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={index}
@@ -162,10 +175,10 @@ export default function CategoryPage() {
           <div className="rounded-2xl border border-[#e2e9e1] bg-[#fbfcfa] px-5 py-12 text-center">
             <div className="text-4xl">🛒</div>
             <h2 className="mt-3 text-xl font-bold text-[#202820]">
-              কোনো পণ্য পাওয়া যায়নি
+              কোনো পণ্য পাওয়া যায়নি
             </h2>
             <p className="mt-2 text-sm text-gray-500">
-              এই category-টি পাওয়া যায়নি অথবা এখানে কোনো পণ্য নেই।
+              এই category-টি পাওয়া যায়নি অথবা এখানে কোনো পণ্য নেই।
             </p>
             <Link
               href="/"
@@ -178,7 +191,7 @@ export default function CategoryPage() {
 
         {/* Product cards */}
         {!loading && !invalid && (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
             {sortedProducts.map((product) => {
               const up = product.change?.dir === "up";
               const down = product.change?.dir === "down";

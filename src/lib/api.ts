@@ -21,18 +21,31 @@ async function fetchAPI<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function uniqueById<T extends { id: number | string }>(items: T[]): T[] {
+  const seen = new Set<string>();
+
+  return items.filter((item) => {
+    const key = String(item.id);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 export function getCategories(): Promise<Category[]> {
   return fetchAPI<Category[]>(API_ENDPOINTS.categories);
 }
-
-export function getProducts(): Promise<Product[]> {
-  return fetchAPI<Product[]>(API_ENDPOINTS.products);
+export async function getProducts(): Promise<Product[]> {
+  const data = await fetchAPI<Product[]>(API_ENDPOINTS.products);
+  return uniqueById(data);
 }
 export function getProductById(id: number | string): Promise<ProductDetail> {
   return fetchAPI<ProductDetail>(API_ENDPOINTS.product(id));
 }
-export function getProductsByCategory(category: string): Promise<Product[]> {
-  return fetchAPI<Product[]>(
+export async function getProductsByCategory(
+  category: string,
+): Promise<Product[]> {
+  const data = await fetchAPI<Product[]>(
     `${API_ENDPOINTS.products}?category=${encodeURIComponent(category)}`,
   );
+  return uniqueById(data);
 }

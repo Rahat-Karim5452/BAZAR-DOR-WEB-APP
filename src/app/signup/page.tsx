@@ -1,225 +1,225 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import {
-  Button,
-  Description,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  TextField,
-} from "@heroui/react";
+import { signUp } from "@/lib/auth-client";
+import SocialAuthButtons from "../components/SocialAuthButtons";
 
-import { signIn, signUp } from "@/lib/auth-client";
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const inputClass =
+  "w-full rounded-lg border border-[#d9e0d7] bg-white px-4 py-3 text-sm text-[#202820] outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100";
+
+function validate(values: {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}): string | null {
+  if (values.name.trim().length < 2) {
+    return "নাম কমপক্ষে ২ অক্ষরের হতে হবে";
+  }
+  if (!EMAIL_REGEX.test(values.email.trim())) {
+    return "সঠিক ইমেইল ঠিকানা দিন";
+  }
+  if (values.password.length < 8) {
+    return "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে";
+  }
+  if (!/[A-Z]/.test(values.password)) {
+    return "পাসওয়ার্ডে কমপক্ষে একটি বড় হাতের ইংরেজি অক্ষর থাকতে হবে";
+  }
+  if (!/[0-9]/.test(values.password)) {
+    return "পাসওয়ার্ডে কমপক্ষে একটি সংখ্যা থাকতে হবে";
+  }
+  if (values.password !== values.confirmPassword) {
+    return "পাসওয়ার্ড দুটি মিলছে না";
+  }
+  return null;
+}
 
 export default function SignUpPage() {
   const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  function showError(message: string) {
+    setFormError(message);
+    toast.error(message);
+  }
 
-    if (loading) return;
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError("");
 
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const validationError = validate({
+      name,
+      email,
+      password,
+      confirmPassword,
+    });
 
-    const name = String(formData.get("name") ?? "").trim();
-    const email = String(formData.get("email") ?? "").trim();
-    const password = String(formData.get("password") ?? "");
-    const confirmPassword = String(formData.get("confirmPassword") ?? "");
-
-    if (name.length < 3) {
-      toast.error("নাম কমপক্ষে ৩ অক্ষরের হতে হবে");
-      return;
-    }
-
-    if (password.length < 8) {
-      toast.error("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে");
-      return;
-    }
-
-    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-      toast.error("পাসওয়ার্ডে একটি বড় হাতের অক্ষর ও একটি সংখ্যা দিন");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("দুটি পাসওয়ার্ড মিলছে না");
+    if (validationError) {
+      showError(validationError);
       return;
     }
 
     setLoading(true);
 
-    try {
-      const { data, error } = await signUp.email({
-        name,
-        email,
-        password,
-      });
+    const { error } = await signUp.email({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+    });
 
-      if (error) {
-        toast.error(
-          error.message || "অ্যাকাউন্ট তৈরি করা যায়নি। আবার চেষ্টা করুন।",
-        );
-        return;
-      }
+    setLoading(false);
 
-      if (data) {
-        toast.success("অ্যাকাউন্ট তৈরি হয়েছে! এখন সাইন ইন করুন।");
-        form.reset();
-
-        // Toast দেখানোর জন্য অল্প সময় দিয়ে Sign in page-এ পাঠানো হচ্ছে।
-        setTimeout(() => {
-          router.push("/signin");
-        }, 1000);
-      } else {
-        toast.error("সাইন আপের ফলাফল নিশ্চিত করা যায়নি। আবার চেষ্টা করুন।");
-      }
-    } catch (error) {
-      console.error("Sign up failed:", error);
-      toast.error("সমস্যা হয়েছে। ইন্টারনেট ও সার্ভার সেটিংস পরীক্ষা করুন।");
-    } finally {
-      setLoading(false);
+    if (error) {
+      showError(
+        error.status === 422
+          ? "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে"
+          : error.message || "অ্যাকাউন্ট তৈরি করা যায়নি",
+      );
+      return;
     }
-  };
 
-  const handleSocialSignIn = async (provider: "google" | "github") => {
-    if (socialLoading) return;
-
-    setSocialLoading(true);
-
-    try {
-      const { error } = await signIn.social({
-        provider,
-        callbackURL: "/",
-      });
-
-      if (error) {
-        toast.error(
-          error.message ||
-            `${provider === "google" ? "Google" : "GitHub"} দিয়ে সাইন ইন করা যায়নি`,
-        );
-      }
-    } catch (error) {
-      console.error(`${provider} sign in failed:`, error);
-      toast.error("Social sign-in চালু করা যায়নি। পরে আবার চেষ্টা করুন।");
-    } finally {
-      setSocialLoading(false);
-    }
-  };
+    toast.success("অ্যাকাউন্ট তৈরি হয়েছে, এখন সাইন ইন করুন");
+    router.push("/signin");
+  }
 
   return (
-    <main className="flex min-h-[580px] flex-1 flex-col items-center bg-[#f0f5ef] px-4 py-10 sm:min-h-[620px] sm:py-12">
+    <main className="flex min-h-[70vh] flex-col items-center bg-[#f0f5ef] px-4 py-10 sm:py-14">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-[#202820] sm:text-3xl">
+        <h1 className="text-2xl font-extrabold text-[#202820] sm:text-3xl">
           অ্যাকাউন্ট তৈরি করুন
         </h1>
         <p className="mt-2 text-sm text-gray-500">
-          বিনা ঝামেলায় সাইন আপ করে পণ্যের বিস্তারিত দাম দেখুন
+          বিনা খরচে সাইন আপ করে সব বিস্তারিত দাম দেখুন।
         </p>
       </div>
 
-      <div className="w-full max-w-md rounded-2xl border border-[#e2e9e1] bg-[#fbfcfa] p-5 shadow-sm sm:p-7">
-        <Form className="flex w-full flex-col gap-4" onSubmit={onSubmit}>
-          <TextField isRequired name="name">
-            <Label className="mb-1 block text-sm font-medium text-[#293329]">
+      <div className="w-full max-w-md rounded-2xl border border-[#e2e9e1] bg-[#fbfcfa] p-6 shadow-sm sm:p-8">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-5"
+        >
+          <div>
+            <label
+              htmlFor="name"
+              className="mb-2 block text-sm font-medium text-[#202820]"
+            >
               নাম
-            </Label>
-            <Input
-              className="h-10 w-full rounded-lg border border-[#e1e8df] bg-[#fbfcfa] px-3 text-sm outline-none focus:border-green-600"
-              placeholder="যেমন: রহিম উদ্দিন"
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
               autoComplete="name"
+              placeholder="যেমন: রহিম উদ্দিন"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={inputClass}
             />
-            <FieldError className="mt-1 text-xs text-red-600" />
-          </TextField>
+          </div>
 
-          <TextField isRequired name="email" type="email">
-            <Label className="mb-1 block text-sm font-medium text-[#293329]">
+          <div>
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm font-medium text-[#202820]"
+            >
               ইমেইল
-            </Label>
-            <Input
-              className="h-10 w-full rounded-lg border border-[#e1e8df] bg-[#fbfcfa] px-3 text-sm outline-none focus:border-green-600"
-              placeholder="you@example.com"
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
               autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClass}
             />
-            <FieldError className="mt-1 text-xs text-red-600" />
-          </TextField>
+          </div>
 
-          <TextField isRequired name="password" type="password">
-            <Label className="mb-1 block text-sm font-medium text-[#293329]">
+          <div>
+            <label
+              htmlFor="password"
+              className="mb-2 block text-sm font-medium text-[#202820]"
+            >
               পাসওয়ার্ড
-            </Label>
-            <Input
-              className="h-10 w-full rounded-lg border border-[#e1e8df] bg-[#fbfcfa] px-3 text-sm outline-none focus:border-green-600"
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
               placeholder="কমপক্ষে ৮ অক্ষর"
-              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputClass}
             />
-            <Description className="mt-1 text-xs text-gray-500">
-              কমপক্ষে ৮ অক্ষর, একটি বড় হাতের অক্ষর ও একটি সংখ্যা দিন
-            </Description>
-            <FieldError className="mt-1 text-xs text-red-600" />
-          </TextField>
+            <p className="mt-1.5 text-xs text-gray-500">
+              কমপক্ষে ৮ অক্ষর, ১টি বড় হাতের অক্ষর ও ১টি সংখ্যা
+            </p>
+          </div>
 
-          <TextField isRequired name="confirmPassword" type="password">
-            <Label className="mb-1 block text-sm font-medium text-[#293329]">
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="mb-2 block text-sm font-medium text-[#202820]"
+            >
               পাসওয়ার্ড নিশ্চিত করুন
-            </Label>
-            <Input
-              className="h-10 w-full rounded-lg border border-[#e1e8df] bg-[#fbfcfa] px-3 text-sm outline-none focus:border-green-600"
-              placeholder="আবার লিখুন"
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
               autoComplete="new-password"
+              placeholder="আবার লিখুন"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={inputClass}
             />
-            <FieldError className="mt-1 text-xs text-red-600" />
-          </TextField>
+          </div>
 
-          <Button
+          {formError && (
+            <p
+              role="alert"
+              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+            >
+              {formError}
+            </p>
+          )}
+
+          <button
             type="submit"
-            isDisabled={loading}
-            className="mt-1 h-11 w-full rounded-lg bg-[#078b45] text-sm font-semibold text-white shadow-sm transition hover:bg-[#06783c] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={loading}
+            className="w-full rounded-lg bg-[#07883f] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#067536] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "অ্যাকাউন্ট তৈরি হচ্ছে..." : "অ্যাকাউন্ট তৈরি করুন"}
-          </Button>
-        </Form>
+          </button>
+        </form>
 
-        <div className="my-4 flex items-center gap-3">
-          <div className="h-px flex-1 bg-[#e0e6df]" />
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-gray-200" />
           <span className="text-xs text-gray-500">অথবা</span>
-          <div className="h-px flex-1 bg-[#e0e6df]" />
+          <span className="h-px flex-1 bg-gray-200" />
         </div>
 
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Button
-            type="button"
-            isDisabled={socialLoading}
-            onPress={() => handleSocialSignIn("google")}
-            className="h-10 rounded-lg border border-[#e1e8df] bg-white px-3 text-sm font-medium text-[#293329] hover:bg-gray-50"
-          >
-            <span className="mr-2 font-bold text-[#4285F4]">G</span>
-            Google দিয়ে চালিয়ে যান
-          </Button>
+        <SocialAuthButtons callbackURL="/" />
 
-          <Button
-            type="button"
-            isDisabled={socialLoading}
-            onPress={() => handleSocialSignIn("github")}
-            className="h-10 rounded-lg border border-[#e1e8df] bg-white px-3 text-sm font-medium text-[#293329] hover:bg-gray-50"
-          >
-            <span className="mr-2 font-bold">●</span>
-            GitHub দিয়ে চালিয়ে যান
-          </Button>
-        </div>
-
-        <p className="mt-5 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-600">
           অ্যাকাউন্ট আছে?{" "}
           <Link
             href="/signin"
-            className="font-medium text-[#078b45] hover:underline"
+            className="font-semibold text-green-700 hover:underline"
           >
             সাইন ইন করুন
           </Link>
@@ -228,7 +228,7 @@ export default function SignUpPage() {
 
       <Link
         href="/"
-        className="mt-5 text-sm text-gray-500 transition hover:text-[#078b45]"
+        className="mt-6 text-sm text-gray-500 hover:text-green-700"
       >
         ← হোম পেজে ফিরে যান
       </Link>

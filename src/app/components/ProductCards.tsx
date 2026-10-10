@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/types";
+
+const TOP_COUNT = 6;
 
 function bn(value: number) {
   return value.toLocaleString("bn-BD", {
@@ -19,7 +21,7 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/product/${product.slug}`}
-      className="block rounded-xl border border-[#e2e9e1] bg-[#fbfcfa] p-3 transition hover:border-green-200 hover:shadow-sm sm:p-3.5"
+      className="block rounded-xl border border-[#e2e9e1] bg-[#fbfcfa] p-3 transition hover:-translate-y-0.5 hover:border-green-200 hover:shadow-sm sm:p-3.5"
     >
       <div className="flex min-w-0 items-start gap-2.5">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#eff4ed] text-xl sm:h-10 sm:w-10">
@@ -60,47 +62,69 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
+function SectionTitle({
+  icon,
+  iconClass,
+  children,
+}: {
+  icon?: string;
+  iconClass?: string;
+  children: ReactNode;
+}) {
+  return (
+    <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[#202820]">
+      {icon && <span className={iconClass}>{icon}</span>}
+      {children}
+    </h2>
+  );
+}
+
 function ProductGrid({
-  title,
   products,
   loading,
   error,
+  emptyText,
 }: {
-  title: string;
   products: Product[];
   loading: boolean;
   error: boolean;
+  emptyText: string;
 }) {
-  return (
-    <section className="mb-7">
-      <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[#202820]">
-        {title === "আজ দাম বেড়েছে" && <span className="text-red-600">▲</span>}
-        {title === "আজ দাম কমেছে" && <span className="text-green-600">▼</span>}
-        {title}
-      </h2>
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: TOP_COUNT }).map((_, i) => (
+          <div
+            key={i}
+            className="h-24 animate-pulse rounded-xl border border-[#e2e9e1] bg-[#fbfcfa]"
+          />
+        ))}
+      </div>
+    );
+  }
 
-      {loading ? (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl bg-white" />
-          ))}
-        </div>
-      ) : error ? (
-        <p className="rounded-xl bg-white p-4 text-sm text-red-600">
-          পণ্যের তথ্য লোড করা যায়নি।
-        </p>
-      ) : products.length === 0 ? (
-        <p className="rounded-xl bg-white p-4 text-sm text-gray-500">
-          এই মুহূর্তে কোনো পণ্য পাওয়া যায়নি।
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
-    </section>
+  if (error) {
+    return (
+      <p className="rounded-xl bg-white p-4 text-sm text-red-600">
+        পণ্যের তথ্য লোড করা যায়নি।
+      </p>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <p className="rounded-xl bg-white p-4 text-sm text-gray-500">
+        {emptyText}
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
   );
 }
 
@@ -110,44 +134,75 @@ export default function ProductCards() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     getProducts()
-      .then(setProducts)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (active) setProducts(data);
+      })
+      .catch(() => {
+        if (active) setError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const rising = products.filter((product) => product.change?.dir === "up");
+  // Aj dam Bereche:
+  const topRisers = products
+    .filter((product) => product.change?.dir === "up")
+    .sort((a, b) => (b.change?.pct ?? 0) - (a.change?.pct ?? 0))
+    .slice(0, TOP_COUNT);
 
-  const falling = products.filter((product) => product.change?.dir === "down");
+  // Aj Dam Komeche:
+  const topFallers = products
+    .filter((product) => product.change?.dir === "down")
+    .sort((a, b) => (b.change?.pct ?? 0) - (a.change?.pct ?? 0))
+    .slice(0, TOP_COUNT);
 
   return (
     <main className="min-h-screen bg-[#f0f5ef] px-4 py-5 sm:px-6 sm:py-7">
-      <div className="mx-auto max-w-4xl">
-        <ProductGrid
-          title="আজ দাম বেড়েছে"
-          products={rising}
-          loading={loading}
-          error={error}
-        />
-
-        <ProductGrid
-          title="আজ দাম কমেছে"
-          products={falling}
-          loading={loading}
-          error={error}
-        />
-
-        <section>
-          <h2 className="text-base font-bold text-[#202820]">সব পণ্য</h2>
-          <p className="mb-3 mt-1 text-[11px] text-gray-500">
-            মোট {bn(products.length)}টি পণ্য দেখানো হচ্ছে
-          </p>
-
+      <div className="mx-auto max-w-6xl">
+        <section className="mb-7">
+          <SectionTitle icon="▲" iconClass="text-red-600">
+            আজ দাম বেড়েছে
+          </SectionTitle>
           <ProductGrid
-            title=""
+            products={topRisers}
+            loading={loading}
+            error={error}
+            emptyText="আজ কোনো পণ্যের দাম বাড়েনি।"
+          />
+        </section>
+
+        <section className="mb-7">
+          <SectionTitle icon="▼" iconClass="text-green-600">
+            আজ দাম কমেছে
+          </SectionTitle>
+          <ProductGrid
+            products={topFallers}
+            loading={loading}
+            error={error}
+            emptyText="আজ কোনো পণ্যের দাম কমেনি।"
+          />
+        </section>
+
+        <section id="সব-পণ্য" className="scroll-mt-40">
+          <SectionTitle>সব পণ্য</SectionTitle>
+          {!loading && !error && (
+            <p className="mb-3 -mt-2 text-[11px] text-gray-500">
+              মোট {bn(products.length)}টি পণ্য দেখানো হচ্ছে
+            </p>
+          )}
+          <ProductGrid
             products={products}
             loading={loading}
             error={error}
+            emptyText="এই মুহূর্তে কোনো পণ্য পাওয়া যায়নি।"
           />
         </section>
       </div>

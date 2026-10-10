@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Marquee from "./components/Marquee";
 import { Toaster } from "react-hot-toast";
+import Footer from "./components/Footer";
 
 const notoSansBengali = Noto_Sans_Bengali({
   subsets: ["latin", "bengali"],
@@ -11,20 +12,21 @@ const notoSansBengali = Noto_Sans_Bengali({
 
 export const metadata: Metadata = {
   title: "বাজার দর",
-  description: "আপনার নিত্যপ্রয়োজনীয় পণ্যের সর্বশেষ বাজারদর",
+  description: "আপনার নিত্যপ্রয়োজনীয় পণ্যের সর্বশেষ বাজারদর",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       data-theme="light"
-      lang="en"
-      className={`${notoSansBengali.className}  h-full antialiased`}
+      lang="bn"
+      className={`${notoSansBengali.className} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <Navbar />
         <Marquee />
-        {children}
+        <div className="flex-1">{children}</div>
+        <Footer />
         <Toaster
           position="top-right"
           toastOptions={{

@@ -31,9 +31,7 @@ export default function PriceMarquee() {
 
     getProducts()
       .then((data) => {
-        if (active) {
-          setProducts(data);
-        }
+        if (active) setProducts(data);
       })
       .catch((error) => {
         console.error("Failed to load market prices:", error);
@@ -50,19 +48,17 @@ export default function PriceMarquee() {
         {products.length > 0 ? (
           products.map((product) => {
             const direction = product.change?.dir;
-            const percentage = product.change?.pct;
+            const percentage = product.change?.pct ?? 0;
 
             return (
               <div
                 key={product.id}
                 className="flex shrink-0 items-center gap-2 border-r border-gray-200 px-4 py-1.5 text-sm sm:px-5"
               >
-                {/* Product emoji from API */}
                 <span aria-hidden="true" className="text-base">
                   {product.image}
                 </span>
 
-                {/* Product name and today's price */}
                 <span className="whitespace-nowrap text-gray-800">
                   <span className="font-medium">{product.nameBn}</span>{" "}
                   <span className="font-semibold">
@@ -71,15 +67,13 @@ export default function PriceMarquee() {
                   </span>
                 </span>
 
-                {/* Price increase*/}
                 {direction === "up" && (
                   <span className="flex shrink-0 items-center gap-1 whitespace-nowrap font-bold text-red-600">
-                    <span aria-label="দাম বেড়েছে">▲</span>
+                    <span aria-label="দাম বেড়েছে">▲</span>
                     <span>{toBanglaNumber(percentage)}%</span>
                   </span>
                 )}
 
-                {/* Price decrease */}
                 {direction === "down" && (
                   <span className="flex shrink-0 items-center gap-1 whitespace-nowrap font-bold text-green-700">
                     <span aria-label="দাম কমেছে">▼</span>
